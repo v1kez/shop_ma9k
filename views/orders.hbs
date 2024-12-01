@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>История заказов</title>
+</head>
+<body>
+    <header>
+        <h1>История заказов</h1>
+    </header>
+    <main>
+        <ul>
+            {{#each orders}}
+                <li>
+                    <h2>Заказ ID: {{this.orders_id}}</h2>
+                    <p>Дата заказа: {{this.order_date}}</p>
+                    <p>Товары:</p>
+                    <ul>
+                        <li>{{this.product_name}} (Количество: {{this.quantity}})</li>
+                    </ul>
+                </li>
+            {{/each}}
+        </ul>
+    </main>
+</body>
+</html>
+

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отзывы о товаре</title>
+</head>
+<body>
+    <header>
+        <h1>Отзывы</h1>
+    </header>
+    <main>
+        <h2>Отзывы пользователей</h2>
+        <ul>
+            {{#each reviews}}
+                <li>
+                    <strong>{{this.username}}:</strong>
+                    <p>Рейтинг: {{this.rating}}</p>
+                    <p>{{this.comment}}</p>
+                </li>
+            {{/each}}
+        </ul>
+
+        <h3>Добавить отзыв</h3>
+        <form action="/reviews" method="POST">
+            <input type="hidden" name="product_id" value="{{product_id}}">
+            <label for="rating">Рейтинг:</label>
+            <input type="number" name="rating" min="1" max="5" required>
+            <label for="comment">Комментарий:</label>
+            <textarea name="comment" required></textarea>
+            <button type="submit">Добавить отзыв</button>
+        </form>
+    </main>
+</body>
+</html>
+

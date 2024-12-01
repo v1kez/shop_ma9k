@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Товары</title>
+</head>
+<body>
+    <header>
+        <h1>Все товары</h1>
+    </header>
+    <main>
+        <ul>
+    {{#each products}}
+        <li>
+            <h2>{{this.product_name}}</h2>
+            <p>{{this.description}}</p>
+            <p>Цена: {{this.price}} руб.</p>
+            <img src="/uploads/{{this.photo}}" alt="{{this.product_name}}" style="width: 100px;">
+            <form action="/cart/add" method="POST">
+                <input type="hidden" name="product_id" value="{{this.product_id}}">
+                <input type="number" name="quantity" value="1" min="1" required>
+                <button type="submit">Добавить в корзину</button>
+            </form>
+            <a href="/products/{{this.product_id}}/reviews">Отзывы</a>
+        </li>
+    {{/each}}
+</ul>
+
+
+    </main>
+</body>
+</html>
