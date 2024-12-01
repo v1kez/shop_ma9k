@@ -1,3 +1,4 @@
+```
 -- Table: public.category
 
 -- DROP TABLE IF EXISTS public.category;
@@ -12,9 +13,10 @@ CREATE TABLE IF NOT EXISTS public.category
 TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public.category
-    OWNER to postgres;
+    OWNER to postgres;`
 
-
+```
+```
 -- Table: public.order_item
 
 -- DROP TABLE IF EXISTS public.order_item;
@@ -36,7 +38,8 @@ TABLESPACE pg_default;
 ALTER TABLE IF EXISTS public.order_item
     OWNER to postgres;
 
-
+```
+```
 -- Table: public.orders
 
 -- DROP TABLE IF EXISTS public.orders;
@@ -62,8 +65,8 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public.orders
     OWNER to postgres;
-
-
+```
+```
 -- Table: public.product
 
 -- DROP TABLE IF EXISTS public.product;
@@ -88,8 +91,8 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public.product
     OWNER to postgres;
-
-
+```
+```
 
     -- Table: public.products_cart
 
@@ -116,8 +119,8 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public.products_cart
     OWNER to postgres;
-
-
+```
+```
 
     -- Table: public.reviews
 
@@ -145,8 +148,8 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public.reviews
     OWNER to postgres;
-
-
+```
+```
 
     -- Table: public.user
 
@@ -167,3 +170,4 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public."user"
     OWNER to postgres;
+```
