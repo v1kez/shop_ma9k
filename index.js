@@ -24,6 +24,11 @@ const pool = new Pool({
     port: 5433,
 });
 
+// Регистрация хелпера eq
+hbs.registerHelper('eq', function (a, b) {
+    return a === b;
+});
+
 // Middleware для обработки JSON и URL-кодированных данных
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -54,8 +59,9 @@ app.set('views', 'views');
 app.set('view engine', 'hbs');
 
 // Главная страница
-app.get('/', (req, res) => {
-    res.render('index');
+app.get('/', async (req, res) => {
+    const user = req.session.userId ? await pool.query('SELECT * FROM public."user" WHERE user_id = \$1', [req.session.userId]) : null;
+    res.render('index',{user: user ? user.rows[0] : null});
 });
 
 // Проверка авторизации
@@ -68,6 +74,7 @@ function checkAuth(req, res, next) {
 
 // Регистрация пользователя
 app.get('/register', (req, res) => {
+    
     res.render('register');
 });
 
@@ -105,11 +112,22 @@ app.post('/login', async (req, res) => {
     }
 });
 
+app.post('/logout', (req, res) => {
+    req.session.destroy(err => {
+        if (err) {
+            return res.status(500).send('Ошибка сервера');
+        }
+        res.redirect('/');
+    });
+});
+
+
 // Добавление товара
 app.get('/add-product', checkAuth, async (req, res) => {
+    const user = req.session.userId ? await pool.query('SELECT * FROM public."user" WHERE user_id = \$1', [req.session.userId]) : null;
     try {
         const result = await pool.query('SELECT * FROM category');
-        res.render('add-product', { category: result.rows });
+        res.render('add-product', { category: result.rows ,user: user ? user.rows[0] : null});
     } catch (error) {
         console.error(error);
         res.status(500).send('Ошибка сервера');
@@ -133,25 +151,52 @@ app.post('/products', upload.single('photo'), async (req, res) => {
     }
 });
 
-// Получение всех товаров
+
+// Получение всех товаров с возможностью сортировки и фильтрации
 app.get('/products', async (req, res) => {
+    const { sort, category, size } = req.query;
+    let query = `
+        SELECT p.*, c.category_name 
+        FROM public.product p 
+        JOIN public.category c ON p.category_id = c.category_id
+        WHERE 1=1`;
+
+    const params = [];
+
+    if (category) {
+        query += ` AND c.category_name = $${params.length + 1}`;
+        params.push(category);
+    }
+
+    if (size) {
+        query += ` AND p.size = $${params.length + 1}`;
+        params.push(size);
+    }
+
+    if (sort === 'price_asc') {
+        query += ` ORDER BY p.price ASC`;
+    } else if (sort === 'price_desc') {
+        query += ` ORDER BY p.price DESC`;
+    }
+
     try {
-        const result = await pool.query(`
-            SELECT p.*, c.category_name 
-            FROM public.product p 
-            JOIN public.category c ON p.category_id = c.category_id
-        `);
-        res.render('products', { products: result.rows });
+        const result = await pool.query(query, params);
+        const categoriesResult = await pool.query('SELECT * FROM public.category'); // Получаем категории
+        const user = req.session.userId ? await pool.query('SELECT * FROM public."user" WHERE user_id = \$1', [req.session.userId]) : null;
+
+        res.render('products', { products: result.rows, user: user ? user.rows[0] : null, categories: categoriesResult.rows });
     } catch (error) {
         console.error(error);
         res.status(500).send('Ошибка сервера');
     }
 });
 
+
+
 // Корзина
 app.get('/cart', checkAuth, async (req, res) => {
     const user_id = req.session.userId;
-
+    const user = req.session.userId ? await pool.query('SELECT * FROM public."user" WHERE user_id = \$1', [req.session.userId]) : null;
     try {
         const cartItems = await pool.query(
             `SELECT p.product_id, p.product_name, p.price, pc.quantity
@@ -162,7 +207,7 @@ app.get('/cart', checkAuth, async (req, res) => {
             [user_id]
         );
 
-        res.render('cart', { cartItems: cartItems.rows });
+        res.render('cart', { cartItems: cartItems.rows,user: user ? user.rows[0] : null });
     } catch (error) {
         console.error('Ошибка при получении корзины:', error);
         res.status(500).send('Ошибка сервера');
@@ -242,7 +287,7 @@ app.post('/checkout', checkAuth, async (req, res) => {
 // История заказов
 app.get('/orders', checkAuth, async (req, res) => {
     const user_id = req.session.userId;
-
+    const user = req.session.userId ? await pool.query('SELECT * FROM public."user" WHERE user_id = \$1', [req.session.userId]) : null;
     try {
         const orders = await pool.query(
             `SELECT o.orders_id, o.order_date, p.product_name, pc.quantity
@@ -254,7 +299,7 @@ app.get('/orders', checkAuth, async (req, res) => {
             [user_id]
         );
 
-        res.render('orders', { orders: orders.rows });
+        res.render('orders', { orders: orders.rows ,user: user ? user.rows[0] : null});
     } catch (error) {
         console.error('Ошибка при получении заказов:', error);
         res.status(500).send('Ошибка сервера');
@@ -281,16 +326,30 @@ app.post('/reviews', checkAuth, async (req, res) => {
 // Получение отзывов для товара
 app.get('/products/:id/reviews', async (req, res) => {
     const product_id = req.params.id;
-
+    const user = req.session.userId ? await pool.query('SELECT * FROM public."user" WHERE user_id = \$1', [req.session.userId]) : null;
     try {
         const reviews = await pool.query(
             'SELECT r.*, u.username FROM public.reviews r JOIN public."user" u ON r.user_id = u.user_id WHERE r.product_id = \$1',
             [product_id]
         );
 
-        res.render('product-reviews', { reviews: reviews.rows, product_id });
+        res.render('product-reviews', { reviews: reviews.rows, product_id ,user: user ? user.rows[0] : null});
     } catch (error) {
         console.error('Ошибка при получении отзывов:', error);
         res.status(500).send('Ошибка сервера');
     }
 });
+
+// Удаление товара
+app.post('/products/delete/:id', checkAuth, async (req, res) => {
+    const productId = req.params.id;
+
+    try {
+        await pool.query('DELETE FROM public.product WHERE product_id = \$1', [productId]);
+        res.redirect('/products');
+    } catch (error) {
+        console.error('Ошибка при удалении товара:', error);
+        res.status(500).send('Ошибка сервера');
+    }
+});
+

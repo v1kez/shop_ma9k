@@ -4,10 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Регистрация</title>
+    <link rel="stylesheet" href="/css/styles.css"> 
 </head>
 <body>
     <header>
         <h1>Регистрация</h1>
+          
+       <nav>
+            <a href="/">Главная</a>
+            <a href="/products">Товары</a>
+            {{#if user}}
+                <span>Привет, {{user.username}}!</span>
+                <form action="/logout" method="POST" style="display:inline;">
+                    <button type="submit">Выход</button>
+                </form>
+                {{#if (eq user.username "dima")}}
+                    <a href="/add-product">Добавить товар</a>
+                {{/if}}
+            {{else}}
+                <a href="/login">Вход</a>
+                <a href="/register">Регистрация</a>
+            {{/if}}
+            <a href="/cart">Корзина</a>
+            <a href="/orders">История заказов</a>
+        </nav>
+ 
     </header>
     <main>
         <form action="/register" method="POST">

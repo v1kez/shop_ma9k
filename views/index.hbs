@@ -12,10 +12,20 @@
         <nav>
             <a href="/">Главная</a>
             <a href="/products">Товары</a>
-            <a href="/add-product">Добавить товар</a>
-            <a href="/login">Вход</a>
-            <a href="/register">Регистрация</a>
+            {{#if user}}
+                <span>Привет, {{user.username}}!</span>
+                <form action="/logout" method="POST" style="display:inline;">
+                    <button type="submit">Выход</button>
+                </form>
+                {{#if (eq user.username "dima")}}
+                    <a href="/add-product">Добавить товар</a>
+                {{/if}}
+            {{else}}
+                <a href="/login">Вход</a>
+                <a href="/register">Регистрация</a>
+            {{/if}}
             <a href="/cart">Корзина</a>
+            <a href="/orders">История заказов</a>
         </nav>
     </header>
     
