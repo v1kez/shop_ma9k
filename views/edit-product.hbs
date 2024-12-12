@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактировать товар</title>
+    <link rel="stylesheet" href="/css/styles.css"> 
+</head>
+<body>
+    <header>
+        <h1>Редактировать товар: {{product.product_name}}</h1>
+        <nav>
+            <a href="/">Главная</a>
+            <a href="/products">Товары</a>
+            <a href="/cart">Корзина</a>
+            <a href="/orders">История заказов</a>
+        </nav>
+    </header>
+    <main>
+        <form action="/products/edit/{{product.product_id}}" method="POST" enctype="multipart/form-data">
+            <label for="product_name">Название товара:</label>
+            <input type="text" name="product_name" id="product_name" value="{{product.product_name}}" required>
+
+            <label for="description">Описание:</label>
+            <textarea name="description" id="description" required>{{product.description}}</textarea>
+
+            <label for="price">Цена:</label>
+            <input type="number" name="price" id="price" value="{{product.price}}" required>
+
+            <label for="category_id">Категория:</label>
+            <select name="category_id" id="category_id">
+                {{#each categories}}
+                    <option value="{{this.category_id}}" {{#if (eq this.category_id ../product.category_id)}}selected{{/if}}>{{this.category_name}}</option>
+                {{/each}}
+            </select>
+
+            <label for="size">Размер:</label>
+            <select name="size" id="size">
+                <option value="S" {{#if (eq product.size "S")}}selected{{/if}}>S</option>
+                <option value="M" {{#if (eq product.size "M")}}selected{{/if}}>M</option>
+                <option value="L" {{#if (eq product.size "L")}}selected{{/if}}>L</option>
+            </select>
+
+            <label for="photo">Фото:</label>
+            <input type="file" name="photo" id="photo">
+
+            <button type="submit">Сохранить изменения</button>
+        </form>
+
+        <form action="/products/delete/{{product.product_id}}" method="POST" style="margin-top: 20px;">
+            <button type="submit">Удалить товар</button>
+        </form>
+    </main>
+</body>
+</html>
+

@@ -60,23 +60,28 @@
             <button type="submit">Применить</button>
         </form>
     </header>
+{{#if (eq user.username "dima")}} <!-- Проверка для отображения ссылки редактирования -->
+            <a href="/edit-product">Редактировать товар</a>
+        {{/if}}
+  <ul>
+{{#each products}}
+    <li>
+        <h2>{{this.product_name}}</h2>
+        <p>{{this.description}}</p>
+        <p>Цена: {{this.price}} руб.</p>
+        <img src="/uploads/{{this.photo}}" alt="{{this.product_name}}" style="width: 100px;">
+        <form action="/cart/add" method="POST">
+            <input type="hidden" name="product_id" value="{{this.product_id}}">
+            <input type="number" name="quantity" value="1" min="1" required>
+            <button type="submit">Добавить в корзину</button>
+        </form>
+        <a href="/products/{{this.product_id}}/reviews">Отзывы</a>
+        
+    </li>
+{{/each}}
+</ul>
 
-    <ul>
-        {{#each products}}
-            <li>
-                <h2>{{this.product_name}}</h2>
-                <p>{{this.description}}</p>
-                <p>Цена: {{this.price}} руб.</p>
-                <img src="/uploads/{{this.photo}}" alt="{{this.product_name}}" style="width: 100px;">
-                <form action="/cart/add" method="POST">
-                    <input type="hidden" name="product_id" value="{{this.product_id}}">
-                    <input type="number" name="quantity" value="1" min="1" required>
-                    <button type="submit">Добавить в корзину</button>
-                </form>
-                <a href="/products/{{this.product_id}}/reviews">Отзывы</a>
-            </li>
-        {{/each}}
-    </ul>
+
 </main>
 
 

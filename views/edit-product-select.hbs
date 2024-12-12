@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактировать товар</title>
+    <link rel="stylesheet" href="/css/styles.css"> 
+</head>
+<body>
+    <header>
+        <h1>Выберите товар для редактирования</h1>
+        <nav>
+            <a href="/">Главная</a>
+            <a href="/products">Товары</a>
+            <a href="/cart">Корзина</a>
+            <a href="/orders">История заказов</a>
+        </nav>
+    </header>
+    <main>
+        <form action="/products/edit" method="GET">
+            <label for="product_id">Выберите товар:</label>
+            <select name="product_id" id="product_id">
+                {{#each products}}
+                    <option value="{{this.product_id}}">{{this.product_name}}</option>
+                {{/each}}
+            </select>
+            <button type="submit">Редактировать</button>
+        </form>
+    </main>
+</body>
+</html>

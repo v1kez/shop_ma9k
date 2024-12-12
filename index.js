@@ -58,10 +58,11 @@ const upload = multer({ storage: storage });
 app.set('views', 'views');
 app.set('view engine', 'hbs');
 
+
 // Главная страница
 app.get('/', async (req, res) => {
     const user = req.session.userId ? await pool.query('SELECT * FROM public."user" WHERE user_id = \$1', [req.session.userId]) : null;
-    res.render('index',{user: user ? user.rows[0] : null});
+    res.render('index', { user: user ? user.rows[0] : null });
 });
 
 // Проверка авторизации
@@ -183,6 +184,8 @@ app.get('/products', async (req, res) => {
         const result = await pool.query(query, params);
         const categoriesResult = await pool.query('SELECT * FROM public.category'); // Получаем категории
         const user = req.session.userId ? await pool.query('SELECT * FROM public."user" WHERE user_id = \$1', [req.session.userId]) : null;
+
+        console.log(user ? user.rows[0] : 'Пользователь не найден'); // Отладочный вывод
 
         res.render('products', { products: result.rows, user: user ? user.rows[0] : null, categories: categoriesResult.rows });
     } catch (error) {
@@ -345,10 +348,78 @@ app.post('/products/delete/:id', checkAuth, async (req, res) => {
     const productId = req.params.id;
 
     try {
+        // Проверяем, есть ли связанные записи
+        const result = await pool.query('SELECT COUNT(*) FROM public.products_cart WHERE product_id = \$1', [productId]);
+        const count = parseInt(result.rows[0].count);
+
+        if (count > 0) {
+            return res.status(400).send('Невозможно удалить товар, так как он используется в корзине.');
+        }
+
+        // Удаляем товар
         await pool.query('DELETE FROM public.product WHERE product_id = \$1', [productId]);
         res.redirect('/products');
     } catch (error) {
         console.error('Ошибка при удалении товара:', error);
+        res.status(500).send('Ошибка сервера');
+    }
+});
+
+// Обработка выбора товара для редактирования
+app.get('/products/edit', checkAuth, async (req, res) => {
+    const productId = req.query.product_id; // Получаем ID товара из параметров запроса
+    const user = req.session.userId ? await pool.query('SELECT * FROM public."user" WHERE user_id = \$1', [req.session.userId]) : null;
+
+    try {
+        const productResult = await pool.query('SELECT * FROM public.product WHERE product_id = \$1', [productId]);
+        const categoriesResult = await pool.query('SELECT * FROM category');
+
+        if (productResult.rows.length === 0) {
+            return res.status(404).send('Товар не найден');
+        }
+
+        res.render('edit-product', {
+            product: productResult.rows[0],
+            categories: categoriesResult.rows,
+            user: user ? user.rows[0] : null
+        });
+    } catch (error) {
+        console.error('Ошибка при выполнении запроса:', error);
+        res.status(500).send('Ошибка сервера');
+    }
+});
+
+
+// Обработка формы редактирования товара
+app.post('/products/edit/:id', upload.single('photo'), async (req, res) => {
+    const { product_name, description, price, category_id, size } = req.body;
+    const photo = req.file ? req.file.filename : null; // Если фото не загружено, используем null
+    const product_id = req.params.id;
+
+    try {
+        await pool.query(
+            'UPDATE public.product SET product_name = \$1, description = \$2, price = \$3, category_id = \$4, photo = \$5, size = \$6 WHERE product_id = \$7',
+            [product_name, description, price, category_id, photo, size, product_id]
+        );
+        res.redirect('/products');
+    } catch (error) {
+        console.error('Ошибка при редактировании товара:', error);
+        res.status(500).send('Ошибка сервера');
+    }
+});
+
+// Страница редактирования товара через выбор из списка
+app.get('/edit-product', checkAuth, async (req, res) => {
+    const user = req.session.userId ? await pool.query('SELECT * FROM public."user" WHERE user_id = \$1', [req.session.userId]) : null;
+
+    try {
+        const productsResult = await pool.query('SELECT * FROM public.product');
+        res.render('edit-product-select', {
+            products: productsResult.rows,
+            user: user ? user.rows[0] : null
+        });
+    } catch (error) {
+        console.error(error);
         res.status(500).send('Ошибка сервера');
     }
 });
